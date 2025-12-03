@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  # Redis Stack with RedisInsight for monitoring
+  redis-stack:
+    image: redis/redis-stack:latest
+    container_name: newslive-redis
+    ports:
+      - "6379:6379"   # Redis port
+      - "8001:8001"   # RedisInsight web interface
+    volumes:
+      - ./redis-data:/data
+    environment:
+      - REDIS_ARGS=--appendonly yes
+    networks:
+      - newslive-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API with Express + Socket.io
+  backend:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: newslive-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - REDIS_URL=redis://redis-stack:6379
+      - FRONTEND_URL=http://localhost:3000
+      - NODE_ENV=production
+    depends_on:
+      redis-stack:
+        condition: service_healthy
+    networks:
+      - newslive-network
+    restart: unless-stopped
+
+  # Frontend Next.js application
+  frontend:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: newslive-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_SOCKET_URL=http://localhost:8080
+    depends_on:
+      - backend
+    networks:
+      - newslive-network
+    restart: unless-stopped
+
+networks:
+  newslive-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+

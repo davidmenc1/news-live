@@ -1,135 +1,203 @@
-# Turborepo starter
+# NewsLive - Real-Time News Portal
 
-This Turborepo starter is maintained by the Turborepo core team.
+A full-stack web application simulating a news portal with real-time notifications using Redis Pub/Sub. Articles appear instantly across all connected browsers when published.
 
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
-
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+## Architecture
 
 ```
-cd my-turborepo
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              NewsLive Architecture                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌──────────────┐         ┌──────────────┐         ┌──────────────────┐   │
+│   │   Browser 1  │         │   Browser 2  │         │   Browser N...   │   │
+│   │  (Reader)    │         │  (Editor)    │         │  (Reader)        │   │
+│   └──────┬───────┘         └──────┬───────┘         └────────┬─────────┘   │
+│          │                        │                          │             │
+│          │ WebSocket              │ HTTP POST                │ WebSocket   │
+│          │                        │ /articles                │             │
+│          ▼                        ▼                          ▼             │
+│   ┌─────────────────────────────────────────────────────────────────────┐  │
+│   │                     Frontend (Next.js :3000)                        │  │
+│   │   - Article List with Category Filtering                            │  │
+│   │   - Real-time Toast Notifications                                   │  │
+│   │   - Notification Panel                                              │  │
+│   │   - Article Detail & Editor Pages                                   │  │
+│   └──────────────────────────────┬──────────────────────────────────────┘  │
+│                                  │                                         │
+│                     REST API + WebSocket (Socket.io)                       │
+│                                  │                                         │
+│                                  ▼                                         │
+│   ┌─────────────────────────────────────────────────────────────────────┐  │
+│   │                    Backend (Express :8080)                          │  │
+│   │   - REST API: GET/POST/PUT /articles                                │  │
+│   │   - Socket.io Server for WebSocket connections                      │  │
+│   │   - Redis Pub/Sub Integration                                       │  │
+│   └───────────────┬─────────────────────────────────┬───────────────────┘  │
+│                   │                                 │                      │
+│         JSON Storage                         Pub/Sub Channel               │
+│         (Redis JSON)                        "news_updates"                 │
+│                   │                                 │                      │
+│                   ▼                                 ▼                      │
+│   ┌─────────────────────────────────────────────────────────────────────┐  │
+│   │                    Redis Stack (:6379)                              │  │
+│   │   - JSON Document Storage for Articles                              │  │
+│   │   - Pub/Sub Channel for Broadcasting                                │  │
+│   │   - RedisInsight UI (:8001)                                         │  │
+│   └─────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
+                              Pub/Sub Flow
+                              ────────────
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+    1. Editor creates article via POST /articles
+    2. Backend saves to Redis JSON
+    3. Backend publishes to "news_updates" channel
+    4. Redis broadcasts to all subscribers
+    5. Backend receives message, emits via Socket.io
+    6. All connected frontends receive "new_article" event
+    7. Toast notification + UI update in real-time
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## Technologies
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+- **Backend**: Node.js/Bun, Express.js, Socket.io
+- **Frontend**: Next.js 16, React 19, Tailwind CSS 4, shadcn/ui
+- **Database**: Redis Stack (JSON storage + Pub/Sub)
+- **Real-time**: Socket.io with Redis Pub/Sub
+- **Containerization**: Docker + Docker Compose
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+## Requirements
 
-### Develop
+- Docker
+- Docker Compose
 
-To develop all apps and packages, run the following command:
+## Quick Start
 
-```
-cd my-turborepo
+### 1. Clone the repository
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```bash
+git clone <your-repo-url>
+cd news-live
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### 2. Start all services
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+docker-compose up --build -d
 ```
 
-### Remote Caching
+This starts:
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **RedisInsight**: http://localhost:8001
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+### 3. Demo the real-time functionality
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+1. Open **Browser 1** at http://localhost:3000
+2. Open **Browser 2** at http://localhost:3000
+3. In Browser 2, click "Write Article" and create a new article
+4. Watch the instant notification appear in Browser 1!
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+### 4. Monitor Redis Pub/Sub
 
-```
-cd my-turborepo
+Visit http://localhost:8001 (RedisInsight) to:
+- View stored articles in Redis JSON
+- Monitor Pub/Sub channel activity
+- Inspect data structure
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+### 5. Stop services
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+```bash
+docker-compose down
 ```
 
-## Useful Links
+To also remove the Redis data volume:
 
-Learn more about the power of Turborepo:
+```bash
+docker-compose down -v
+```
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+## Development (without Docker)
+
+### Prerequisites
+
+- Node.js 18+ or Bun
+- Redis Stack running locally
+
+### Backend
+
+```bash
+cd apps/api
+bun install
+bun run dev
+```
+
+### Frontend
+
+```bash
+cd apps/web
+bun install
+bun run dev
+```
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/articles` | Get all articles (optional: `?category=Politics\|Sport\|Tech`) |
+| GET | `/articles/:id` | Get single article by ID |
+| POST | `/articles` | Create new article |
+| PUT | `/articles/:id` | Update existing article |
+
+### Create Article Example
+
+```bash
+curl -X POST http://localhost:8080/articles \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Breaking News",
+    "content": "This is the article content...",
+    "category": "Politics",
+    "author": "John Doe"
+  }'
+```
+
+## WebSocket Events
+
+| Event | Direction | Description |
+|-------|-----------|-------------|
+| `new_article` | Server → Client | Broadcast when new article is published |
+
+## Project Structure
+
+```
+news-live/
+├── apps/
+│   ├── api/                  # Backend (Express + Socket.io)
+│   │   ├── routes/           # REST API routes
+│   │   ├── services/         # Redis client & Pub/Sub
+│   │   ├── sockets.ts        # Socket.io handlers
+│   │   ├── index.ts          # Server entry point
+│   │   └── Dockerfile
+│   └── web/                  # Frontend (Next.js)
+│       ├── app/              # Next.js App Router pages
+│       ├── components/       # React components
+│       ├── lib/              # Utilities & API client
+│       └── Dockerfile
+├── docker-compose.yml        # Container orchestration
+├── redis-data/               # Redis persistence (gitignored)
+└── README.md
+```
+
+## Categories
+
+Articles can be assigned to one of three categories:
+- **Politics** - Political news and updates
+- **Sport** - Sports news and events
+- **Tech** - Technology and innovation
+
+## License
+
+MIT
