@@ -1,5 +1,5 @@
 {
-  "name": "my-turborepo",
+  "name": "news-live",
   "private": true,
   "scripts": {
     "build": "turbo run build",
