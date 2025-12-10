@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { SocketProvider } from "@/components/socket-provider";
 import { CategoryProvider } from "@/components/category-context";
+import { AuthProvider } from "@/components/auth-context";
 import { NotificationPanel } from "@/components/notification-panel";
 
 interface ProvidersProps {
@@ -16,13 +17,13 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <SocketProvider>
-        <CategoryProvider>
-          {children}
-        </CategoryProvider>
-        <NotificationPanel />
-        <Toaster position="top-right" richColors closeButton />
-      </SocketProvider>
+      <AuthProvider>
+        <SocketProvider>
+          <CategoryProvider>{children}</CategoryProvider>
+          <NotificationPanel />
+          <Toaster position="top-right" richColors closeButton />
+        </SocketProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

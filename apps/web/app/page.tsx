@@ -1,13 +1,15 @@
 import { ArticleList } from "@/components/article-list";
 import { ArticleDialog } from "@/components/article-dialog";
+import { AuthDialog } from "@/components/auth-dialog";
 import { CategoryFilter } from "@/components/category-filter-wrapper";
 import { SearchInput } from "@/components/search-input";
 import { fetchArticles } from "@/lib/api";
+import type { Article } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  let articles = [];
+  let articles: Article[] = [];
 
   try {
     articles = await fetchArticles();
@@ -24,6 +26,7 @@ export default async function Home() {
           <div className="flex items-center gap-3">
             <SearchInput />
             <CategoryFilter />
+            <AuthDialog />
             <ArticleDialog />
           </div>
         </div>

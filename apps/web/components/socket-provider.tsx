@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { getSocket, connectSocket, disconnectSocket } from "@/lib/socket";
 import type { Article } from "@/lib/types";
 import { toast } from "sonner";
@@ -38,7 +44,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     setNewArticle(article);
 
     toast(`New: ${article.title}`, {
-      description: `${article.category} · ${article.author}`,
+      description: `${article.category} · ${article.authorName}`,
       action: {
         label: "Read",
         onClick: () => {

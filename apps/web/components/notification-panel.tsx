@@ -59,7 +59,9 @@ export function NotificationPanel() {
         <Card className="absolute bottom-14 right-0 w-80 max-h-[400px] overflow-hidden shadow-xl">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Live Updates</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                Live Updates
+              </CardTitle>
               <div className="flex items-center gap-2">
                 {notifications.length > 0 && (
                   <Button
@@ -112,16 +114,25 @@ export function NotificationPanel() {
                         <h4 className="text-sm font-medium line-clamp-2">
                           {article.title}
                         </h4>
-                        <Badge variant="outline" className={cn("text-xs shrink-0", getCategoryColor(article.category))}>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-xs shrink-0",
+                            getCategoryColor(article.category)
+                          )}
+                        >
                           {article.category}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {article.author} ·{" "}
-                        {new Date(article.createdAt).toLocaleTimeString("cs-CZ", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {article.authorName} ·{" "}
+                        {new Date(article.createdAt).toLocaleTimeString(
+                          "cs-CZ",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }
+                        )}
                       </p>
                     </div>
                   </Link>
@@ -154,4 +165,3 @@ export function NotificationPanel() {
     </div>
   );
 }
-

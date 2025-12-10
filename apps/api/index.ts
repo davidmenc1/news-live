@@ -5,6 +5,7 @@ import cors from "cors";
 import { connectRedis } from "./services/redis";
 import { setupSocketHandlers } from "./sockets";
 import articlesRouter from "./routes/articles";
+import authRouter from "./routes/auth";
 
 const app = express();
 const httpServer = createServer(app);
@@ -32,6 +33,7 @@ app.get("/", (req, res) => {
 });
 
 // API routes
+app.use("/auth", authRouter);
 app.use("/articles", articlesRouter);
 
 // Start server
@@ -47,6 +49,7 @@ async function start() {
     httpServer.listen(port, () => {
       console.log(`NewsLive API listening on port ${port}`);
       console.log(`WebSocket server ready`);
+      console.log(`Redis-native storage: articles stored individually with sorted sets`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);

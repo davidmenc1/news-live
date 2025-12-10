@@ -11,16 +11,20 @@ interface ArticleCardProps {
  * Simple article card for the stream
  */
 export function ArticleCard({ article }: ArticleCardProps) {
-  const formattedDate = new Date(article.createdAt).toLocaleDateString("cs-CZ", {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const formattedDate = new Date(article.createdAt).toLocaleDateString(
+    "cs-CZ",
+    {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+  );
 
-  const preview = article.content.length > 200
-    ? `${article.content.slice(0, 200)}...`
-    : article.content;
+  const preview =
+    article.content.length > 200
+      ? `${article.content.slice(0, 200)}...`
+      : article.content;
 
   return (
     <Link href={`/articles/${article.id}`} className="block group">
@@ -29,7 +33,13 @@ export function ArticleCard({ article }: ArticleCardProps) {
           <h2 className="font-semibold group-hover:underline">
             {article.title}
           </h2>
-          <Badge variant="outline" className={cn("shrink-0 text-xs", getCategoryColor(article.category))}>
+          <Badge
+            variant="outline"
+            className={cn(
+              "shrink-0 text-xs",
+              getCategoryColor(article.category)
+            )}
+          >
             {article.category}
           </Badge>
         </div>
@@ -37,7 +47,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
           {preview}
         </p>
         <div className="text-xs text-muted-foreground">
-          {article.author} · {formattedDate}
+          {article.authorName} · {formattedDate}
         </div>
       </article>
     </Link>

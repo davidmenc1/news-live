@@ -22,24 +22,25 @@ import {
 import { createArticle } from "@/lib/api";
 import { CATEGORIES, type Category } from "@/lib/types";
 import { Plus } from "lucide-react";
+import { useAuth } from "./auth-context";
 
 /**
- * Dialog for creating new articles
+ * Dialog for creating new articles (requires authentication)
  */
 export function ArticleDialog() {
+  const { isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     content: "",
     category: "" as Category | "",
-    author: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.content || !formData.category || !formData.author) {
+    if (!formData.title || !formData.content || !formData.category) {
       return;
     }
 
@@ -50,18 +51,24 @@ export function ArticleDialog() {
         title: formData.title,
         content: formData.content,
         category: formData.category as Category,
-        author: formData.author,
       });
 
       // Reset form and close dialog
-      setFormData({ title: "", content: "", category: "", author: "" });
+      setFormData({ title: "", content: "", category: "" });
       setOpen(false);
     } catch (error) {
       console.error("Error creating article:", error);
+      alert(
+        error instanceof Error ? error.message : "Failed to create article"
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -82,42 +89,33 @@ export function ArticleDialog() {
               id="title"
               placeholder="Article title"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               disabled={isSubmitting}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="author">Author</Label>
-              <Input
-                id="author"
-                placeholder="Your name"
-                value={formData.author}
-                onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value as Category })}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select
+              value={formData.category}
+              onValueChange={(value) =>
+                setFormData({ ...formData, category: value as Category })
+              }
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="category">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -126,7 +124,9 @@ export function ArticleDialog() {
               id="content"
               placeholder="Write your article..."
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, content: e.target.value })
+              }
               disabled={isSubmitting}
               className="min-h-[150px]"
             />
@@ -150,4 +150,3 @@ export function ArticleDialog() {
     </Dialog>
   );
 }
-

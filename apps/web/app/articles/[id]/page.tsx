@@ -45,14 +45,17 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-2xl">
-        <Badge variant="outline" className={cn("mb-4", getCategoryColor(article.category))}>
+        <Badge
+          variant="outline"
+          className={cn("mb-4", getCategoryColor(article.category))}
+        >
           {article.category}
         </Badge>
 
         <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
 
         <div className="text-sm text-muted-foreground mb-8">
-          {article.author} · {createdDate}
+          {article.authorName} · {createdDate}
         </div>
 
         <article className="prose prose-neutral dark:prose-invert max-w-none">

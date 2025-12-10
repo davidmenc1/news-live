@@ -4,16 +4,63 @@
 export type Category = "Politics" | "Sport" | "Tech";
 
 /**
- * Article entity stored in Redis JSON
+ * User entity stored in Redis
+ */
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  passwordHash: string;
+  createdAt: string;
+}
+
+/**
+ * User data without sensitive information (for responses)
+ */
+export interface PublicUser {
+  id: string;
+  email: string;
+  username: string;
+  createdAt: string;
+}
+
+/**
+ * Article entity stored in Redis as individual documents
  */
 export interface Article {
   id: string;
   title: string;
   content: string;
   category: Category;
-  author: string;
+  authorId: string;
+  authorName: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * Payload for user registration
+ */
+export interface RegisterPayload {
+  email: string;
+  username: string;
+  password: string;
+}
+
+/**
+ * Payload for user login
+ */
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+/**
+ * Authentication response
+ */
+export interface AuthResponse {
+  user: PublicUser;
+  token: string;
 }
 
 /**
@@ -23,7 +70,6 @@ export interface CreateArticlePayload {
   title: string;
   content: string;
   category: Category;
-  author: string;
 }
 
 /**
@@ -33,7 +79,6 @@ export interface UpdateArticlePayload {
   title?: string;
   content?: string;
   category?: Category;
-  author?: string;
 }
 
 /**
