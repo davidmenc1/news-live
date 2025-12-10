@@ -142,4 +142,44 @@ router.post("/logout", async (req, res) => {
   }
 });
 
+/**
+ * GET /auth/me
+ * Get current authenticated user
+ */
+router.get("/me", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    
+    if (!token) {
+      res.status(401).json({ error: "Missing authorization token" });
+      return;
+    }
+
+    // Import here to avoid circular dependency
+    const { getUserIdFromSession, getUserById } = await import("../services/redis");
+    
+    // Get user ID from session
+    const userId = await getUserIdFromSession(token);
+    if (!userId) {
+      res.status(401).json({ error: "Invalid or expired session" });
+      return;
+    }
+
+    // Get user details
+    const user = await getUserById(userId);
+    if (!user) {
+      res.status(401).json({ error: "User not found" });
+      return;
+    }
+
+    res.json({
+      user: toPublicUser(user),
+      token,
+    });
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+    res.status(500).json({ error: "Failed to fetch user" });
+  }
+});
+
 export default router;

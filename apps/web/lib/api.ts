@@ -119,6 +119,31 @@ export async function logout(): Promise<void> {
   removeToken();
 }
 
+/**
+ * Get current authenticated user from session
+ */
+export async function getCurrentUser(): Promise<AuthResponse> {
+  const token = getToken();
+  
+  if (!token) {
+    throw new Error("No session token found");
+  }
+
+  const response = await fetch(`${API_URL}/auth/me`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to fetch current user");
+  }
+
+  return response.json();
+}
+
 // ============================================================================
 // ARTICLES API
 // ============================================================================

@@ -8,7 +8,7 @@ import React, {
   ReactNode,
 } from "react";
 import type { User, RegisterPayload, LoginPayload } from "@/lib/types";
-import { register, login, logout, getToken } from "@/lib/api";
+import { register, login, logout, getToken, getCurrentUser } from "@/lib/api";
 
 interface AuthContextType {
   user: User | null;
@@ -26,15 +26,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const token = getToken();
-    if (token) {
-      // TODO: Add a "me" endpoint to fetch current user
-      // For now, we'll just mark as not loading
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
-    }
+    // Check if user is already logged in by validating token
+    const restoreSession = async () => {
+      try {
+        const token = getToken();
+        if (token) {
+          // Try to fetch current user to validate session
+          const response = await getCurrentUser();
+          setUser(response.user);
+        }
+      } catch (error) {
+        // Session is invalid or expired
+        console.debug("Session not found or expired");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    restoreSession();
   }, []);
 
   const handleRegister = async (payload: RegisterPayload) => {
